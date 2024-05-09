@@ -2,6 +2,7 @@ import { data } from "@/constants/data";
 import { theme } from "@/constants/theme";
 import { hp, wp } from "@/helpers/common";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import Animated, { FadeInRight } from "react-native-reanimated";
 
 const Categories = ({
   activeCategory,
@@ -45,14 +46,19 @@ const CategoryItem = ({
     ? theme.colors.neutral(0.8)
     : theme.colors.white;
   return (
-    <View>
+    <Animated.View
+      entering={FadeInRight.delay(200 * index)
+        .duration(1000)
+        .springify()
+        .damping(14)}
+    >
       <Pressable
         onPress={() => handleChangeCategory(isActive ? null : title)}
         style={[styles.category, { backgroundColor }]}
       >
         <Text style={[styles.title, { color }]}>{title}</Text>
       </Pressable>
-    </View>
+    </Animated.View>
   );
 };
 const styles = StyleSheet.create({
