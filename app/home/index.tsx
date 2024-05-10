@@ -21,7 +21,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { debounce, set } from "lodash";
+import { debounce, filter, set } from "lodash";
 import FilterModal from "@/components/filterModal";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 
@@ -111,6 +111,17 @@ const HomeScreen = () => {
   const closeFilterModal = () => {
     modalRef.current?.close();
   };
+  const clearThisFilter = (filterName) => {
+    let newFilters = { ...filters };
+    delete newFilters[filterName];
+    setFilters({ ...newFilters });
+    page = 1;
+    setImages([]);
+    let params = { page, ...newFilters };
+    if (activeCategory) params.category = activeCategory;
+    if (search) params.q = search;
+    fetchImages(params, false);
+  };
   return (
     <View style={[styles.container, { paddingTop }]}>
       <View style={styles.header}>
@@ -161,6 +172,48 @@ const HomeScreen = () => {
             activeCategory={activeCategory}
           />
         </View>
+        {filters && (
+          <View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.filters}
+            >
+              {Object.keys(filters).map((filter, index) => {
+                return (
+                  <View key={filter} style={styles.filterItem}>
+                    {filter == "colors" ? (
+                      <View
+                        style={{
+                          width: 30,
+                          height: 20,
+                          borderRadius: 7,
+                          backgroundColor: filters[filter],
+                        }}
+                      ></View>
+                    ) : (
+                      <Text style={styles.filterItemText}>
+                        {filters[filter]}
+                      </Text>
+                    )}
+                    <Pressable
+                      onPress={() => {
+                        clearThisFilter(filter);
+                      }}
+                      style={styles.filterCloseIcon}
+                    >
+                      <Ionicons
+                        name="close"
+                        size={14}
+                        color={theme.colors.neutral(0.9)}
+                      />
+                    </Pressable>
+                  </View>
+                );
+              })}
+            </ScrollView>
+          </View>
+        )}
         <View>{images.length > 0 && <ImageGrid images={images} />}</View>
         <View
           style={{
@@ -224,6 +277,28 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.neutral(0.1),
     padding: 8,
     borderRadius: theme.radius.sm,
+  },
+  filters: {
+    paddingHorizontal: wp(4),
+    gap: 10,
+  },
+  filterItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 8,
+    gap: 10,
+    backgroundColor: theme.colors.grayBG,
+    borderRadius: theme.radius.xs,
+
+    paddingHorizontal: 10,
+  },
+  filterItemText: {
+    fontSize: hp(1.9),
+  },
+  filterCloseIcon: {
+    padding: 4,
+    borderRadius: 7,
+    backgroundColor: theme.colors.neutral(0.2),
   },
 });
 

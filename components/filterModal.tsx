@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { BlurView } from "expo-blur";
 import Animated, {
   Extrapolation,
+  FadeInDown,
   interpolate,
   SharedValue,
   useAnimatedStyle,
@@ -42,12 +43,17 @@ const FilterModal = ({
       <BottomSheetView style={styles.contentContainer}>
         <View style={styles.content}>
           <Text style={styles.filterText}>Filters</Text>
-          {Object.keys(sections).map((sectionName) => {
+          {Object.keys(sections).map((sectionName, index) => {
             let sectionView = sections[sectionName];
             let title = capitalize(sectionName);
             let sectionData = data.filters[sectionName];
             return (
-              <View key={sectionName}>
+              <Animated.View
+                entering={FadeInDown.delay(100 * index + 100)
+                  .springify()
+                  .damping(11)}
+                key={sectionName}
+              >
                 <SectionView
                   title={title}
                   content={sectionView({
@@ -57,7 +63,7 @@ const FilterModal = ({
                     filterName: sectionName,
                   })}
                 />
-              </View>
+              </Animated.View>
             );
           })}
           {/* {Object.entries(sections).map(([key, Section]) => (
@@ -65,7 +71,10 @@ const FilterModal = ({
               <Text>Content</Text>
             </Section>
           ))} */}
-          <View style={styles.buttons}>
+          <Animated.View
+            entering={FadeInDown.delay(500).springify().damping(11)}
+            style={styles.buttons}
+          >
             <Pressable style={styles.resetButton} onPress={onReset}>
               <Text
                 style={[
@@ -90,7 +99,7 @@ const FilterModal = ({
                 Appy
               </Text>
             </Pressable>
-          </View>
+          </Animated.View>
         </View>
       </BottomSheetView>
     </BottomSheetModal>
