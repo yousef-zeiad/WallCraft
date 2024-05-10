@@ -35,6 +35,8 @@ const HomeScreen = () => {
   const [filters, setFilters] = useState(null);
   const searchInputRef = useRef<TextInput>(null);
   const modalRef = useRef<BottomSheetModal>(null);
+  const scrollRef = useRef<ScrollView>(null);
+  const [isEndReached, setIsEndReached] = useState(false);
   useEffect(() => {
     fetchImages();
   }, []);
@@ -122,10 +124,32 @@ const HomeScreen = () => {
     if (search) params.q = search;
     fetchImages(params, false);
   };
+
+  const handleScroll = (event) => {
+    const contentHeight = event.nativeEvent.contentSize.height;
+    const layoutHeight = event.nativeEvent.layoutMeasurement.height;
+    const scrollY = event.nativeEvent.contentOffset.y;
+    const bottomPosition = contentHeight - layoutHeight;
+    if (scrollY >= bottomPosition - 1) {
+      if (!isEndReached) {
+        setIsEndReached(true);
+        ++page;
+        let params = { page, ...filters };
+        if (activeCategory) params.category = activeCategory;
+        if (search) params.q = search;
+        fetchImages(params, true);
+      }
+    } else if (isEndReached) {
+      setIsEndReached(false);
+    }
+  };
+  const handleScrollToTop = () => {
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
+  };
   return (
     <View style={[styles.container, { paddingTop }]}>
       <View style={styles.header}>
-        <Pressable>
+        <Pressable onPress={handleScrollToTop}>
           <Text style={styles.title}>WallCraft</Text>
         </Pressable>
         <Pressable onPress={opeFilterModal}>
@@ -137,6 +161,9 @@ const HomeScreen = () => {
         </Pressable>
       </View>
       <ScrollView
+        onScroll={handleScroll}
+        scrollEventThrottle={5}
+        ref={scrollRef}
         contentContainerStyle={{
           gap: 15,
         }}

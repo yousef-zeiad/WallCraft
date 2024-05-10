@@ -38,7 +38,6 @@ const FilterModal = ({
       snapPoints={snapPoints}
       enablePanDownToClose={true}
       backdropComponent={CustomBackdrop}
-      // onChange={handleSheetChanges}
     >
       <BottomSheetView style={styles.contentContainer}>
         <View style={styles.content}>
@@ -66,11 +65,6 @@ const FilterModal = ({
               </Animated.View>
             );
           })}
-          {/* {Object.entries(sections).map(([key, Section]) => (
-            <Section key={key} title={key}>
-              <Text>Content</Text>
-            </Section>
-          ))} */}
           <Animated.View
             entering={FadeInDown.delay(500).springify().damping(11)}
             style={styles.buttons}
