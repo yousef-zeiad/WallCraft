@@ -10,3 +10,28 @@ export const hp = (percentage: number) => {
   const height = deviceHeight;
   return (percentage * height) / 100;
 };
+
+export const getColumnsCount = () => {
+  if (deviceWidth >= 1024) {
+    return 4;
+  } else if (deviceWidth >= 768) {
+    return 3;
+  } else {
+    return 2;
+  }
+};
+
+export const getImageSize = (height: number, width: number) => {
+  if (width > height) {
+    return 250;
+  } else if (width < height) {
+    return 300;
+  } else {
+    return 200;
+  }
+};
+
+export const capitalize = (str: string) => {
+  // return str.charAt(0).toUpperCase() + str.slice(1);
+  return str.replace(/\b\w/g, (c) => c.toUpperCase());
+};

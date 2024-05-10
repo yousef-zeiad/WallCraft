@@ -1,9 +1,18 @@
+import { apiCall } from "@/api";
 import Categories from "@/components/categories";
+import ImageGrid from "@/components/imageGrid";
 import { theme } from "@/constants/theme";
 import { hp, wp } from "@/helpers/common";
 import { Feather, FontAwesome6, Ionicons } from "@expo/vector-icons";
-import { SetStateAction, useRef, useState } from "react";
 import {
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import {
+  ActivityIndicator,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -12,24 +21,103 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { debounce, set } from "lodash";
+import FilterModal from "@/components/filterModal";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
 
+let page;
 const HomeScreen = () => {
   const { top } = useSafeAreaInsets();
   const paddingTop = top > 0 ? top + 10 : 30;
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState(null);
+  const [images, setImages] = useState([]);
+  const [filters, setFilters] = useState(null);
   const searchInputRef = useRef<TextInput>(null);
-  const handleChangeCategory = (cat: SetStateAction<null>) => {
-    setActiveCategory(cat);
+  const modalRef = useRef<BottomSheetModal>(null);
+  useEffect(() => {
+    fetchImages();
+  }, []);
+  const fetchImages = async (params = { page: 1 }, append = false) => {
+    let res = await apiCall(params);
+    if (res.success && res.data?.hits) {
+      if (append) {
+        setImages([...images, ...res.data.hits]);
+      } else {
+        setImages([...res.data.hits]);
+      }
+    }
   };
-  console.log("activeCategory", activeCategory);
+  const applyFilters = () => {
+    if (filters) {
+      page = 1;
+      setImages([]);
+      let params = { page, ...filters };
+      if (activeCategory) params.category = activeCategory;
+      if (search) params.q = search;
+      fetchImages(params, false);
+    }
+    closeFilterModal();
+  };
+  const resetFilters = () => {
+    if (filters) {
+      setFilters(null);
+      page = 1;
+      setImages([]);
+      let params = { page };
+      if (activeCategory) params.category = activeCategory;
+      if (search) params.q = search;
+      fetchImages(params, false);
+    }
+    closeFilterModal();
+  };
+  const handleChangeCategory = (cat) => {
+    setActiveCategory(cat);
+    clearSearch();
+    setImages([]);
+    page = 1;
+    let params = { page, ...filters };
+    if (cat) params.category = cat;
+    fetchImages(params, false);
+  };
+
+  const handleSearch = (text) => {
+    setSearch(text);
+    if (text.length > 2) {
+      page = 1;
+      setImages([]);
+      setActiveCategory(null);
+      fetchImages({ page, q: text, ...filters }, false);
+    }
+    if (text == "") {
+      page = 1;
+      searchInputRef?.current?.clear();
+      setImages([]);
+      setActiveCategory(null);
+      fetchImages({ page, ...filters }, false);
+    }
+  };
+  const clearSearch = () => {
+    setSearch("");
+    searchInputRef?.current?.clear();
+    page = 1;
+    setImages([]);
+    fetchImages({ page });
+  };
+  const handleDebounceSearch = useCallback(debounce(handleSearch, 400), []);
+  const opeFilterModal = () => {
+    modalRef.current?.present();
+  };
+  const closeFilterModal = () => {
+    modalRef.current?.close();
+  };
   return (
     <View style={[styles.container, { paddingTop }]}>
       <View style={styles.header}>
         <Pressable>
           <Text style={styles.title}>WallCraft</Text>
         </Pressable>
-        <Pressable>
+        <Pressable onPress={opeFilterModal}>
           <FontAwesome6
             name="bars-staggered"
             size={22}
@@ -51,14 +139,14 @@ const HomeScreen = () => {
             />
           </View>
           <TextInput
-            onChangeText={(value) => setSearch(value)}
+            onChangeText={handleDebounceSearch}
             placeholder="Search for Photos..."
             style={styles.searchInput}
-            value={search}
+            // value={search}
             ref={searchInputRef}
           />
           {search && (
-            <Pressable style={styles.closeIcon}>
+            <Pressable style={styles.closeIcon} onPress={clearSearch}>
               <Ionicons
                 name="close"
                 size={24}
@@ -67,11 +155,31 @@ const HomeScreen = () => {
             </Pressable>
           )}
         </View>
-        <Categories
-          handleChangeCategory={handleChangeCategory}
-          activeCategory={activeCategory}
-        />
+        <View style={styles.categories}>
+          <Categories
+            handleChangeCategory={handleChangeCategory}
+            activeCategory={activeCategory}
+          />
+        </View>
+        <View>{images.length > 0 && <ImageGrid images={images} />}</View>
+        <View
+          style={{
+            marginTop: images.length > 0 ? 10 : 70,
+            marginBottom: 70,
+          }}
+        >
+          <ActivityIndicator size="large" />
+        </View>
       </ScrollView>
+
+      <FilterModal
+        modalRef={modalRef}
+        onApply={applyFilters}
+        filters={filters}
+        setFilters={setFilters}
+        onReset={resetFilters}
+        onClose={closeFilterModal}
+      />
     </View>
   );
 };
