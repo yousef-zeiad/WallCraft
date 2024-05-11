@@ -21,6 +21,14 @@ const Layout = () => {
               headerShown: false,
             }}
           />
+          <Stack.Screen
+            name="home/image"
+            options={{
+              headerShown: false,
+              presentation: "transparentModal",
+              animation: "fade",
+            }}
+          />
         </Stack>
       </BottomSheetModalProvider>
     </GestureHandlerRootView>

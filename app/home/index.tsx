@@ -24,6 +24,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { debounce, filter, set } from "lodash";
 import FilterModal from "@/components/filterModal";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { useRouter } from "expo-router";
 
 let page;
 const HomeScreen = () => {
@@ -36,6 +37,7 @@ const HomeScreen = () => {
   const searchInputRef = useRef<TextInput>(null);
   const modalRef = useRef<BottomSheetModal>(null);
   const scrollRef = useRef<ScrollView>(null);
+  const router = useRouter();
   const [isEndReached, setIsEndReached] = useState(false);
   useEffect(() => {
     fetchImages();
@@ -241,7 +243,9 @@ const HomeScreen = () => {
             </ScrollView>
           </View>
         )}
-        <View>{images.length > 0 && <ImageGrid images={images} />}</View>
+        <View>
+          {images.length > 0 && <ImageGrid images={images} router={router} />}
+        </View>
         <View
           style={{
             marginTop: images.length > 0 ? 10 : 70,
