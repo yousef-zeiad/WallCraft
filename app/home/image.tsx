@@ -24,14 +24,16 @@ const ImageScreen = () => {
   const item = useLocalSearchParams();
   const [status, setStatus] = React.useState("loading");
   let uri = item?.webformatURL;
-  const fileName = item?.previewURL?.split("/").pop();
+  const fileName = Array.isArray(item?.previewURL)
+    ? item?.previewURL[0]?.split("/").pop()
+    : item?.previewURL?.split("/").pop();
   const imageURL = uri;
   const filePath = `${FileSystem.documentDirectory}${fileName}`;
   const onLoad = () => {
     setStatus("");
   };
   const getSize = () => {
-    const aspectRatio = item?.imageWidth / item?.imageHeight;
+    const aspectRatio = Number(item?.imageWidth) / Number(item?.imageHeight);
     const maxWidth = Platform.OS === "web" ? wp(50) : wp(92);
     let calculatedHeight = maxWidth / aspectRatio;
     let calculatedWidth = maxWidth;
