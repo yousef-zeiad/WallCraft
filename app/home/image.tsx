@@ -5,6 +5,7 @@ import {
   Pressable,
   StyleSheet,
   View,
+  Text,
 } from "react-native";
 import React from "react";
 import { BlurView } from "expo-blur";
@@ -16,6 +17,7 @@ import { Entypo, Octicons } from "@expo/vector-icons";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
+import Toast from "react-native-toast-message";
 
 const ImageScreen = () => {
   const router = useRouter();
@@ -42,7 +44,7 @@ const ImageScreen = () => {
     try {
       const { uri } = await FileSystem.downloadAsync(imageURL, filePath);
       setStatus("");
-      console.log("Finished downloading to ", uri);
+      showToast({ message: "Image Downloaded" });
       return uri;
     } catch (error) {
       console.log("Error downloading file", error.message);
@@ -65,6 +67,21 @@ const ImageScreen = () => {
       await Sharing.shareAsync(uri);
     }
   };
+  const showToast = ({ message }: { message: string }) => {
+    Toast.show({
+      type: "success",
+      text1: message,
+      position: "bottom",
+    });
+  };
+  const toastConfig = {
+    success: ({ text1, props, ...rest }: { text1: string; props: any }) => (
+      <View style={styles.toast}>
+        <Text style={styles.toastText}>{text1}</Text>
+      </View>
+    ),
+  };
+
   return (
     <BlurView style={styles.container} intensity={60} tint="dark">
       <View style={getSize()}>
@@ -114,6 +131,7 @@ const ImageScreen = () => {
           )}
         </Animated.View>
       </View>
+      <Toast config={toastConfig} visibilityTime={2500} />
     </BlurView>
   );
 };
@@ -155,5 +173,19 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.3)",
     borderRadius: theme.radius.lg,
     borderCurve: "continuous",
+  },
+  toast: {
+    backgroundColor: "rgba(255,255,255,0.15)",
+    padding: 15,
+    marginHorizontal: 30,
+    borderRadius: theme.radius.xl,
+    borderCurve: "continuous",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  toastText: {
+    color: theme.colors.white,
+    fontSize: hp(1.8),
+    fontWeight: theme.fontWeights.simibold,
   },
 });
